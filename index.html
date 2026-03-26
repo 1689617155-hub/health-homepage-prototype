@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>健康首页 - 方案C 主角轮换</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
+    background: #f0f0f5;
+    display: flex;
+    justify-content: center;
+    padding: 20px 0;
+    min-height: 100vh;
+  }
+
+  .phone {
+    width: 375px;
+    min-height: 812px;
+    background: #f5f5fa;
+    border-radius: 44px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 0 0 3px #d1d1d6, 0 20px 60px rgba(0,0,0,0.15);
+  }
+
+  .statusbar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 28px 6px; font-size: 14px; font-weight: 600; color: #1c1c1e;
+  }
+  .statusbar-r { display: flex; gap: 5px; align-items: center; }
+  .statusbar-r svg { width: 16px; height: 16px; fill: #1c1c1e; }
+
+  .scroll {
+    height: 760px; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 90px;
+  }
+  .scroll::-webkit-scrollbar { display: none; }
+
+  .hdr {
+    display: flex; justify-content: space-between; align-items: center; padding: 6px 20px 16px;
+  }
+  .hdr-title { font-size: 26px; font-weight: 700; color: #1c1c1e; }
+  .hdr-r { display: flex; gap: 12px; }
+  .hdr-btn {
+    width: 32px; height: 32px; border-radius: 50%; background: #fff; border: none;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; color: #8e8e93; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+
+  /* Smart Alert */
+  .smart-alert {
+    margin: 0 16px 12px; padding: 11px 14px; background: #fff4ec;
+    border-radius: 12px; display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: #b45309; line-height: 1.45;
+  }
+  .smart-alert-icon { font-size: 15px; flex-shrink: 0; }
+
+  /* === HERO CARD === */
+  .hero {
+    margin: 0 16px 12px; background: #fff; border-radius: 20px;
+    padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    position: relative; overflow: hidden;
+  }
+  .hero-top {
+    display: flex; align-items: flex-start; gap: 14px; margin-bottom: 14px;
+  }
+  .hero-ring-wrap {
+    width: 64px; height: 64px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .hero-texts { flex: 1; padding-top: 4px; }
+  .hero-label { font-size: 12px; color: #8e8e93; font-weight: 500; margin-bottom: 4px; }
+  .hero-headline { font-size: 19px; font-weight: 700; color: #1c1c1e; line-height: 1.35; }
+  .hero-desc {
+    font-size: 13.5px; color: #6e6e73; line-height: 1.55; margin-bottom: 14px;
+  }
+
+  /* Compare bars */
+  .compare-row { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
+  .compare-label { font-size: 12px; color: #8e8e93; width: 56px; flex-shrink: 0; }
+  .compare-bar-bg { flex: 1; height: 6px; background: #f0f0f5; border-radius: 3px; overflow: hidden; }
+  .compare-bar-fill { height: 100%; border-radius: 3px; }
+  .compare-val { font-size: 12px; font-weight: 600; color: #1c1c1e; width: 52px; text-align: right; flex-shrink: 0; }
+
+  /* Attribution pills */
+  .attr-pills { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
+  .attr-pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: 500;
+  }
+  .attr-pill.pos { background: #e8faf0; color: #1a8a4a; }
+  .attr-pill.neg { background: #fef0ef; color: #c53030; }
+  .attr-pill.neu { background: #fff8eb; color: #b45309; }
+
+  .hero-cta {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 18px; border-radius: 20px; font-size: 13px;
+    font-weight: 600; border: none; cursor: pointer;
+    background: #1c1c1e; color: #fff;
+  }
+  .hero-cta:active { transform: scale(0.96); }
+  .hero-more { font-size: 13px; color: #8e8e93; padding: 9px 14px; cursor: pointer; }
+
+  .tag-prompt {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 14px; padding-top: 14px; border-top: 1px solid #f0f0f5;
+  }
+  .tag-prompt-text { font-size: 13px; color: #6e6e73; }
+  .tag-prompt-btn {
+    padding: 7px 14px; border-radius: 18px; border: 1px solid #d1d1d6;
+    background: #fff; font-size: 12px; color: #1c1c1e; font-weight: 500; cursor: pointer;
+  }
+
+  /* === MINI CARDS (2x2) === */
+  .mini-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 16px 12px; }
+  .mini-card {
+    background: #fff; border-radius: 16px; padding: 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04); cursor: pointer; transition: transform 0.15s;
+  }
+  .mini-card:active { transform: scale(0.97); }
+  .mini-top { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .mini-ring { width: 40px; height: 40px; flex-shrink: 0; }
+  .mini-info { flex: 1; }
+  .mini-label { font-size: 11px; color: #8e8e93; font-weight: 500; }
+  .mini-val { font-size: 18px; font-weight: 700; color: #1c1c1e; line-height: 1.2; }
+  .mini-unit { font-size: 11px; font-weight: 400; color: #8e8e93; }
+  .mini-desc { font-size: 11px; color: #8e8e93; line-height: 1.3; }
+  .mini-progress { height: 4px; background: #f0f0f5; border-radius: 2px; margin-top: 6px; overflow: hidden; }
+  .mini-progress-fill { height: 100%; border-radius: 2px; }
+
+  /* === AI SUGGESTION === */
+  .ai-suggest {
+    margin: 0 16px 12px; background: #fff; border-radius: 16px;
+    padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .ai-suggest-icon {
+    width: 36px; height: 36px; border-radius: 12px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+  }
+  .ai-suggest-body { flex: 1; }
+  .ai-suggest-text { font-size: 14px; color: #1c1c1e; line-height: 1.45; }
+  .ai-suggest-sub { font-size: 11px; color: #8e8e93; margin-top: 2px; }
+  .ai-suggest-cta {
+    padding: 7px 14px; border-radius: 16px; background: #1c1c1e;
+    color: #fff; font-size: 12px; font-weight: 600; border: none; cursor: pointer; flex-shrink: 0;
+  }
+
+  /* === AI SUMMARY === */
+  .ai-summary {
+    margin: 0 16px 12px; background: #fff; border-radius: 16px;
+    padding: 16px 18px; box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .ai-summary-hdr { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .ai-badge { font-size: 10px; font-weight: 700; color: #764ba2; background: #f3eafa; padding: 3px 8px; border-radius: 6px; }
+  .ai-summary-label { font-size: 12px; color: #8e8e93; }
+  .ai-summary-text { font-size: 14px; color: #3a3a3c; line-height: 1.6; }
+
+  /* === STREAK === */
+  .streak {
+    margin: 0 16px 12px; background: #fff; border-radius: 16px;
+    padding: 14px 18px; display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .streak-l { display: flex; align-items: center; gap: 10px; }
+  .streak-title { font-size: 14px; font-weight: 600; color: #1c1c1e; }
+  .streak-sub { font-size: 11px; color: #8e8e93; margin-top: 1px; }
+  .streak-dots { display: flex; gap: 4px; }
+  .s-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .s-dot.on { background: #f59e0b; }
+  .s-dot.off { background: #e5e5ea; }
+
+  /* === HEALTH DATA (2-col) === */
+  .section-title { padding: 10px 20px 10px; font-size: 13px; color: #8e8e93; font-weight: 600; }
+  .health-grid { margin: 0 16px 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .health-item {
+    background: #fff; border-radius: 14px; padding: 14px 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: flex; align-items: center; gap: 12px;
+  }
+  .health-item-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0;
+  }
+  .health-item-info { flex: 1; }
+  .health-item-label { font-size: 11px; color: #8e8e93; }
+  .health-item-val { font-size: 17px; font-weight: 700; color: #1c1c1e; margin-top: 1px; }
+  .health-item-unit { font-size: 11px; font-weight: 400; color: #8e8e93; }
+
+  /* FAB */
+  .fab {
+    position: absolute; bottom: 28px; right: 20px; width: 50px; height: 50px;
+    border-radius: 50%; background: #1c1c1e; display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 24px; border: none; cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.18); z-index: 100;
+  }
+  .fab:active { transform: scale(0.9); }
+
+  /* Demo */
+  .demo {
+    position: fixed; top: 20px; right: 20px; z-index: 999;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .demo-lbl { font-size: 11px; color: #8e8e93; padding: 0 4px; margin-bottom: 2px; }
+  .demo-btn {
+    padding: 9px 16px; border-radius: 10px; border: 1px solid #e5e5ea;
+    background: #fff; color: #3a3a3c; font-size: 13px; cursor: pointer; text-align: left;
+  }
+  .demo-btn:hover { background: #f5f5fa; }
+  .demo-btn.active { background: #eef2ff; border-color: #818cf8; color: #4338ca; }
+  .demo-note { font-size: 10px; color: #aeaeb2; padding: 0 4px; margin-top: 4px; line-height: 1.4; }
+
+  .fade { animation: fadeIn 0.35s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+
+<div class="demo">
+  <div class="demo-lbl">AI 判断主角</div>
+  <button class="demo-btn active" onclick="go('sleep')">🌙 睡眠不好 → 睡眠</button>
+  <button class="demo-btn" onclick="go('status')">✨ 状态不错 → 状态</button>
+  <button class="demo-btn" onclick="go('stress')">😮‍💨 压力飙高 → 压力</button>
+  <button class="demo-btn" onclick="go('exercise')">🏃 快达标了 → 运动</button>
+  <button class="demo-btn" onclick="go('diet')">🍽️ 摄入偏高 → 饮食</button>
+  <div class="demo-note">模拟 AI 根据当前最值得<br>关注的维度选择首屏主角</div>
+</div>
+
+<div class="phone">
+  <div class="statusbar">
+    <span>9:41</span>
+    <div class="statusbar-r">
+      <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+      <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+    </div>
+  </div>
+  <div class="scroll">
+    <div class="hdr">
+      <div class="hdr-title">健康</div>
+      <div class="hdr-r"><button class="hdr-btn">📅</button><button class="hdr-btn">👤</button></div>
+    </div>
+    <div id="alert" class="smart-alert" style="display:none;">
+      <span class="smart-alert-icon">⚠️</span><span id="alertTxt"></span>
+    </div>
+    <div id="hero" class="hero"></div>
+    <div id="minis" class="mini-cards"></div>
+    <div class="ai-suggest">
+      <div class="ai-suggest-icon">💡</div>
+      <div class="ai-suggest-body">
+        <div class="ai-suggest-text" id="sugTxt"></div>
+        <div class="ai-suggest-sub" id="sugSub"></div>
+      </div>
+      <button class="ai-suggest-cta" id="sugCta"></button>
+    </div>
+    <div class="ai-summary">
+      <div class="ai-summary-hdr"><span class="ai-badge">AI</span><span class="ai-summary-label">本周摘要</span></div>
+      <div class="ai-summary-text">这周睡得有点拉胯，主要是周三和周五熬太晚了。好消息是运动量比上周多了 30%，周末跑步之后睡眠质量明显变好 👍</div>
+    </div>
+    <div class="streak">
+      <div class="streak-l">
+        <span style="font-size:18px;">🔥</span>
+        <div><div class="streak-title">连续早睡 5 天</div><div class="streak-sub">再坚持 2 天达成周目标</div></div>
+      </div>
+      <div class="streak-dots">
+        <div class="s-dot on"></div><div class="s-dot on"></div><div class="s-dot on"></div>
+        <div class="s-dot on"></div><div class="s-dot on"></div><div class="s-dot off"></div><div class="s-dot off"></div>
+      </div>
+    </div>
+    <div class="section-title">健康数据</div>
+    <div class="health-grid">
+      <div class="health-item"><div class="health-item-icon" style="background:#fef2f2;">❤️</div><div class="health-item-info"><div class="health-item-label">静息心率</div><div class="health-item-val">72 <span class="health-item-unit">bpm</span></div></div></div>
+      <div class="health-item"><div class="health-item-icon" style="background:#eff6ff;">🫁</div><div class="health-item-info"><div class="health-item-label">血氧</div><div class="health-item-val">98<span class="health-item-unit">%</span></div></div></div>
+      <div class="health-item"><div class="health-item-icon" style="background:#ecfdf5;">💚</div><div class="health-item-info"><div class="health-item-label">HRV</div><div class="health-item-val">45 <span class="health-item-unit">ms</span></div></div></div>
+      <div class="health-item"><div class="health-item-icon" style="background:#fefce8;">🌡️</div><div class="health-item-info"><div class="health-item-label">体温</div><div class="health-item-val">36.5<span class="health-item-unit">°C</span></div></div></div>
+      <div class="health-item"><div class="health-item-icon" style="background:#fdf2f8;">🫀</div><div class="health-item-info"><div class="health-item-label">ECG</div><div class="health-item-val">正常</div></div></div>
+      <div class="health-item"><div class="health-item-icon" style="background:#f5f3ff;">🚶</div><div class="health-item-info"><div class="health-item-label">步数</div><div class="health-item-val">6,280</div></div></div>
+    </div>
+  </div>
+  <button class="fab" onclick="this.textContent = this.textContent==='+'?'×':'+'">+</button>
+</div>
+
+<script>
+const C = {
+  sleep:    { main: '#8b5cf6', track: '#ede9fe' },
+  status:   { main: '#34d399', track: '#d1fae5' },
+  stress:   { main: '#f97316', track: '#ffedd5' },
+  exercise: { main: '#3b82f6', track: '#dbeafe' },
+  diet:     { main: '#ec4899', track: '#fce7f3' }
+};
+const D = {
+  sleep:    { label: '睡眠', val: '6.2h', pct: 0.68 },
+  status:   { label: '状态', val: '78分', pct: 0.78 },
+  stress:   { label: '压力', val: '偏高', pct: 0.72 },
+  exercise: { label: '运动', val: '120m', pct: 0.80 },
+  diet:     { label: '饮食', val: '1.8k', pct: 0.85 }
+};
+
+function ring(type, size) {
+  const r = size === 'lg' ? 26 : 16;
+  const sw = size === 'lg' ? 5 : 3.5;
+  const circ = 2 * Math.PI * r;
+  const dash = circ * D[type].pct;
+  const s = (r + sw) * 2;
+  const cx = r + sw;
+  const fs = size === 'lg' ? 13 : 10;
+  const w = size === 'lg' ? 64 : 40;
+  return `<svg width="${w}" height="${w}" viewBox="0 0 ${s} ${s}">
+    <circle cx="${cx}" cy="${cx}" r="${r}" fill="none" stroke="${C[type].track}" stroke-width="${sw}"/>
+    <circle cx="${cx}" cy="${cx}" r="${r}" fill="none" stroke="${C[type].main}" stroke-width="${sw}"
+      stroke-dasharray="${dash} ${circ-dash}" stroke-linecap="round" transform="rotate(-90 ${cx} ${cx})"/>
+    <text x="${cx}" y="${cx+1}" text-anchor="middle" dominant-baseline="central"
+      font-size="${fs}" font-weight="700" fill="#1c1c1e">${D[type].val}</text>
+  </svg>`;
+}
+
+const heroes = {
+  sleep: {
+    alert: '心率比平时偏高，可能跟昨晚没休息好有关',
+    sug: { t: '今晚 11 点前上床，补回昨晚的睡眠', s: '基于你的睡眠数据', c: '设提醒' },
+    html: (r) => `
+      <div class="hero-top">
+        <div class="hero-ring-wrap">${r}</div>
+        <div class="hero-texts">
+          <div class="hero-label">昨晚睡眠</div>
+          <div class="hero-headline">睡得不太好，深睡偏少</div>
+        </div>
+      </div>
+      <div class="hero-desc">身体恢复时间比平时少了 1.3 小时，入睡也偏晚。</div>
+      <div style="margin-bottom:12px;">
+        <div class="compare-row"><span class="compare-label">日常水平</span><div class="compare-bar-bg"><div class="compare-bar-fill" style="width:82%;background:#8b5cf6;"></div></div><span class="compare-val">7.5h</span></div>
+        <div class="compare-row"><span class="compare-label">昨晚</span><div class="compare-bar-bg"><div class="compare-bar-fill" style="width:58%;background:#f87171;"></div></div><span class="compare-val">6.2h</span></div>
+      </div>
+      <div class="attr-pills"><span class="attr-pill neg">入睡晚了 40 分钟</span><span class="attr-pill neg">深睡仅 48 分钟</span></div>
+      <button class="hero-cta">查看详情</button>
+      <div class="tag-prompt"><span class="tag-prompt-text">可能是什么原因呢？</span><button class="tag-prompt-btn">＋ 添加标签</button></div>`
+  },
+  status: {
+    alert: '',
+    sug: { t: '状态不错，来一次 30 分钟跑步吧', s: '趁状态好发力效果更好', c: '开始' },
+    html: (r) => `
+      <div class="hero-top">
+        <div class="hero-ring-wrap">${r}</div>
+        <div class="hero-texts">
+          <div class="hero-label">今日状态</div>
+          <div class="hero-headline">状态不错，适合挑战</div>
+        </div>
+      </div>
+      <div class="hero-desc">综合睡眠、HRV 和活动数据，身体准备充分。</div>
+      <div style="display:flex;gap:16px;margin-bottom:12px;">
+        <div style="flex:1;"><div style="font-size:12px;color:#8e8e93;margin-bottom:8px;">⚡ 充电因素</div><div class="attr-pills" style="margin:0;flex-direction:column;"><span class="attr-pill pos">昨晚睡了 7.5h</span><span class="attr-pill pos">深睡比例不错</span></div></div>
+        <div style="flex:1;"><div style="font-size:12px;color:#8e8e93;margin-bottom:8px;">🔋 耗电因素</div><div class="attr-pills" style="margin:0;flex-direction:column;"><span class="attr-pill neg">久坐 3h+</span><span class="attr-pill neu">下午可能犯困</span></div></div>
+      </div>
+      <button class="hero-cta">查看详情</button>
+      <div class="tag-prompt"><span class="tag-prompt-text">感觉准吗？</span><button class="tag-prompt-btn">😊 准 / 😐 不太准</button></div>`
+  },
+  stress: {
+    alert: '压力持续偏高已超过 2 小时，起来走走或做几次深呼吸',
+    sug: { t: '来捏两个气泡释放一下压力', s: '减压练习通常 3 分钟见效', c: '去减压' },
+    html: (r) => `
+      <div class="hero-top">
+        <div class="hero-ring-wrap">${r}</div>
+        <div class="hero-texts">
+          <div class="hero-label">当前压力</div>
+          <div class="hero-headline">压力比平时高不少</div>
+        </div>
+      </div>
+      <div class="hero-desc">从下午 2 点开始持续上升，已经高于日常水平。</div>
+      <div style="margin-bottom:12px;">
+        <div class="compare-row"><span class="compare-label">日常水平</span><div class="compare-bar-bg"><div class="compare-bar-fill" style="width:30%;background:#d1d5db;"></div></div><span class="compare-val">30 分钟</span></div>
+        <div class="compare-row"><span class="compare-label">今天</span><div class="compare-bar-bg"><div class="compare-bar-fill" style="width:75%;background:#f97316;"></div></div><span class="compare-val">2 小时</span></div>
+      </div>
+      <div class="attr-pills"><span class="attr-pill neg">连续会议 2.5h</span><span class="attr-pill neg">午休没睡好</span></div>
+      <button class="hero-cta">🫧 去捏气泡</button>
+      <div class="tag-prompt"><span class="tag-prompt-text">可能是什么原因呢？</span><button class="tag-prompt-btn">＋ 添加标签</button></div>`
+  },
+  exercise: {
+    alert: '',
+    sug: { t: '下班后快走 30 分钟就能达标本周目标', s: '坚持到周末你就满了', c: '开始' },
+    html: (r) => `
+      <div class="hero-top">
+        <div class="hero-ring-wrap">${r}</div>
+        <div class="hero-texts">
+          <div class="hero-label">本周运动</div>
+          <div class="hero-headline">快达标了，再走 30 分钟</div>
+        </div>
+      </div>
+      <div class="hero-desc">距离 WHO 推荐的每周 150 分钟目标还差一点。</div>
+      <div style="margin-bottom:12px;">
+        <div class="compare-row"><span class="compare-label">推荐目标</span><div class="compare-bar-bg"><div class="compare-bar-fill" style="width:100%;background:#e5e7eb;"></div></div><span class="compare-val">150 min</span></div>
+        <div class="compare-row"><span class="compare-label">本周完成</span><div class="compare-bar-bg"><div class="compare-bar-fill" style="width:80%;background:#3b82f6;"></div></div><span class="compare-val">120 min</span></div>
+      </div>
+      <div style="display:flex;gap:4px;margin-bottom:14px;">
+        ${['一','二','三','四','五','六','日'].map((d,i) => {
+          const v=[30,0,45,0,25,20,0][i];
+          return `<div style="flex:1;text-align:center;"><div style="height:28px;background:#f0f0f5;border-radius:4px;display:flex;align-items:flex-end;overflow:hidden;">${v?`<div style="width:100%;height:${v/45*100}%;background:${i<5?'#3b82f6':'#dbeafe'};border-radius:3px;"></div>`:''}</div><div style="font-size:9px;color:#aeaeb2;margin-top:3px;">周${d}</div></div>`;
+        }).join('')}
+      </div>
+      <button class="hero-cta">🏃 开始快走</button>`
+  },
+  diet: {
+    alert: '',
+    sug: { t: '晚餐少吃一碗米饭，今天热量就达标了', s: '基于你的饮食记录', c: '知道了' },
+    html: (r) => `
+      <div class="hero-top">
+        <div class="hero-ring-wrap">${r}</div>
+        <div class="hero-texts">
+          <div class="hero-label">今日饮食</div>
+          <div class="hero-headline">摄入略偏高，晚餐吃清淡点</div>
+        </div>
+      </div>
+      <div class="hero-desc">午餐那顿炸鸡贡献了不少热量，整体还好。</div>
+      <div style="margin-bottom:12px;">
+        <div class="compare-row"><span class="compare-label">推荐摄入</span><div class="compare-bar-bg"><div class="compare-bar-fill" style="width:78%;background:#e5e7eb;"></div></div><span class="compare-val">1,700 kcal</span></div>
+        <div class="compare-row"><span class="compare-label">今日已摄</span><div class="compare-bar-bg"><div class="compare-bar-fill" style="width:88%;background:#ec4899;"></div></div><span class="compare-val">1,860 kcal</span></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <div style="flex:1;text-align:center;padding:8px;background:#fdf2f8;border-radius:10px;"><div style="font-size:16px;font-weight:700;color:#1c1c1e;">62g</div><div style="font-size:10px;color:#8e8e93;margin-top:2px;">蛋白质 ✓</div></div>
+        <div style="flex:1;text-align:center;padding:8px;background:#fff7ed;border-radius:10px;"><div style="font-size:16px;font-weight:700;color:#1c1c1e;">78g</div><div style="font-size:10px;color:#f97316;margin-top:2px;">脂肪 偏高</div></div>
+        <div style="flex:1;text-align:center;padding:8px;background:#f0f0f5;border-radius:10px;"><div style="font-size:16px;font-weight:700;color:#1c1c1e;">210g</div><div style="font-size:10px;color:#8e8e93;margin-top:2px;">碳水</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button class="hero-cta">🍽️ 记录晚餐</button><span class="hero-more">查看详情 ›</span>
+      </div>
+      <div class="tag-prompt"><span class="tag-prompt-text">今天吃了什么？</span><button class="tag-prompt-btn">＋ 快捷记录</button></div>`
+  }
+};
+
+const miniTpl = {
+  sleep: (r) => `<div class="mini-card" onclick="go('sleep')"><div class="mini-top">${r}<div class="mini-info"><div class="mini-label">昨晚睡眠</div><div class="mini-val">6.2 <span class="mini-unit">小时</span></div></div></div><div class="mini-desc">深睡偏少，入睡晚了</div></div>`,
+  status: (r) => `<div class="mini-card" onclick="go('status')"><div class="mini-top">${r}<div class="mini-info"><div class="mini-label">今日状态</div><div class="mini-val">78 <span class="mini-unit">分</span></div></div></div><div class="mini-desc">适合挑战</div></div>`,
+  stress: (r) => `<div class="mini-card" onclick="go('stress')"><div class="mini-top">${r}<div class="mini-info"><div class="mini-label">压力</div><div class="mini-val">偏高</div></div></div><div class="mini-desc">持续上升中</div></div>`,
+  exercise: (r) => `<div class="mini-card" onclick="go('exercise')"><div class="mini-top">${r}<div class="mini-info"><div class="mini-label">本周运动</div><div class="mini-val">120 <span class="mini-unit">/ 150 min</span></div></div></div><div class="mini-progress"><div class="mini-progress-fill" style="width:80%;background:#3b82f6;"></div></div></div>`,
+  diet: (r) => `<div class="mini-card" onclick="go('diet')"><div class="mini-top">${r}<div class="mini-info"><div class="mini-label">今日饮食</div><div class="mini-val">1,860 <span class="mini-unit">kcal</span></div></div></div><div class="mini-desc">略偏高</div></div>`
+};
+
+const order = ['sleep','status','stress','exercise','diet'];
+
+function go(type) {
+  // Alert
+  const a = document.getElementById('alert');
+  if (heroes[type].alert) { a.style.display='flex'; document.getElementById('alertTxt').textContent=heroes[type].alert; }
+  else { a.style.display='none'; }
+
+  // Hero
+  const h = document.getElementById('hero');
+  h.innerHTML = heroes[type].html(ring(type,'lg'));
+  h.className = 'hero fade';
+
+  // Minis
+  const others = order.filter(t=>t!==type);
+  document.getElementById('minis').innerHTML = others.map(t => miniTpl[t](`<div class="mini-ring">${ring(t,'sm')}</div>`)).join('');
+
+  // Suggestion
+  document.getElementById('sugTxt').textContent = heroes[type].sug.t;
+  document.getElementById('sugSub').textContent = heroes[type].sug.s;
+  document.getElementById('sugCta').textContent = heroes[type].sug.c;
+
+  // Demo btns
+  document.querySelectorAll('.demo-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`.demo-btn[onclick="go('${type}')"]`).classList.add('active');
+}
+go('sleep');
+</script>
+</body>
+</html>
